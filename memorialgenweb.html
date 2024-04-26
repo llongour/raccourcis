@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirection vers MemorialGenWeb</title>
+    <script src="coord_vers_code_insee.js"></script>
+    <script>
+        async function redirectToMemorialGenWeb() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const latitude = urlParams.get('lat');
+            const longitude = urlParams.get('lon');
+
+            if (latitude && longitude) {
+                const cityCode = await getCityCode(latitude, longitude);
+                if (cityCode) {
+                    const memorialUrl = `https://www.memorialgenweb.org/memorial3/html/fr/resultinsee.php?insee=${cityCode}`;
+                    window.location.href = memorialUrl;
+                } else {
+                    console.error("Aucune commune trouvée pour les coordonnées fournies.");
+                }
+            } else {
+                console.error("Erreur: les paramètres 'lat' et 'lon' sont requis.");
+            }
+        }
+
+        window.onload = redirectToMemorialGenWeb;
+    </script>
+</head>
