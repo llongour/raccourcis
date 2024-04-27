@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Redirection vers Wikimedia Commons</title>
+    <script src="coord_vers_code_insee.js"></script>
+    <script>
+        async function redirectToCommons() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const latitude = urlParams.get('lat');
+            const longitude = urlParams.get('lon');
+
+            if (!latitude || !longitude) {
+                console.error("Les paramètres 'lat' et 'lon' sont requis.");
+                return;
+            }
+
+            try {
+                const cityCode = await getCityCode(latitude, longitude);
+                if (!cityCode) {
+                    console.error("Aucune commune trouvée pour les coordonnées fournies.");
+                    return;
+                }
+
+                const sparqlUrl = `https://query.wikidata.org/sparql?query=SELECT%20?commons%20WHERE%20{?item%20wdt:P374%20"${cityCode}";%20wdt:P373%20?commons}&format=json`;
+                const response = await fetch(sparqlUrl);
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const commonsCategory = data.results.bindings[0]?.commons.value;
+
+                if (commonsCategory) {
+                    const commonsUrl = `https://commons.wikimedia.org/wiki/Category:${commonsCategory}`;
+                    window.location.href = commonsUrl;
+                } else {
+                    console.error("Aucune catégorie Commons trouvée pour le code de ville:", cityCode);
+                }
+            } catch (error) {
+                console.error("Erreur lors de la redirection:", error);
+            }
+        }
+
+        window.onload = redirectToCommons;
+    </script>
+</head>
+<body>
+    <h1>Redirection vers Wikimedia Commons</h1>
+    <p>Si vous n'êtes pas redirigé automatiquement, assurez-vous que les paramètres 'lat' et 'lon' sont corrects.</p>
+</body>
+</html>
+
