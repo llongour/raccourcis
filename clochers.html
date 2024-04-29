@@ -5,17 +5,23 @@
     <title>Redirection vers Clochers.org</title>
     <script src="coord_vers_code_insee.js"></script>
     <script>
-        async function redirectToClochers() {
+        async function processRequest() {
             const urlParams = new URLSearchParams(window.location.search);
             const latitude = urlParams.get('lat');
             const longitude = urlParams.get('lon');
+            const keepUrl = urlParams.get('keep_url') === 'true'; // 'true' garde l'URL
 
             if (latitude && longitude) {
                 const cityCode = await getCityCode(latitude, longitude);
                 if (cityCode) {
                     const departmentCode = cityCode.substring(0, 2);
                     const clocherUrl = `https://clochers.org/Fichiers_HTML/Accueil/Accueil_clochers/${departmentCode}/accueil_${cityCode}.htm`;
-                    window.location.href = clocherUrl;
+
+                    if (keepUrl) {
+                        document.getElementById('iframe-container').innerHTML = `<iframe src="${clocherUrl}" width="100%" height="100%" frameborder="0"></iframe>`;
+                    } else {
+                        window.location.href = clocherUrl;
+                    }
                 } else {
                     console.error("Aucune commune trouvée pour les coordonnées fournies.");
                 }
@@ -24,6 +30,11 @@
             }
         }
 
-        window.onload = redirectToClochers;
+        window.onload = processRequest;
     </script>
 </head>
+<body>
+    <div id="iframe-container" style="height: 100vh; width=100vw;">
+    </div>
+</body>
+</html>
